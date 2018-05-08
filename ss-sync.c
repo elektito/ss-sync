@@ -6,24 +6,11 @@
 #include "gstrtpmytimestamp.h"
 
 GstRTSPMediaFactory *
-get_media_factory(void)
-{
-  GstRTSPMediaFactory *factory;
-
-  factory = gst_rtsp_media_factory_new();
-
-  gst_rtsp_media_factory_set_launch(factory,
-              "( filesrc location=/home/mostafa/Downloads/sample_data/1_cam01.mkv ! matroskademux ! h265parse ! rtph265pay pt=96 name=pay0 )");
-
-  return factory;
-}
-
-GstRTSPMediaFactory *
-get_media_factory2(void)
+get_media_factory(const char *filename)
 {
   MyFactory *factory;
 
-  factory = my_factory_new();
+  factory = my_factory_new(filename);
 
   return GST_RTSP_MEDIA_FACTORY(factory);
 }
@@ -39,8 +26,13 @@ main(int argc, char *argv[])
   gst_init(&argc, &argv);
   gst_element_register(NULL, "rtpmytimestamp", 0, GST_TYPE_RTP_MY_TIMESTAMP);
 
+  if (argc != 2) {
+    printf("\nusage: %s h265-mkv-file\n\n", argv[0]);
+    return 1;
+  }
+
   server = gst_rtsp_server_new();
-  factory = get_media_factory2();
+  factory = get_media_factory(argv[1]);
 
   /* get the default mount points from the server */
   mounts = gst_rtsp_server_get_mount_points(server);

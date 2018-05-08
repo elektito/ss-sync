@@ -9,7 +9,7 @@ G_BEGIN_DECLS
 #define MY_TYPE_FACTORY (my_factory_get_type ())
 G_DECLARE_FINAL_TYPE(MyFactory, my_factory, MY, FACTORY, GstRTSPMediaFactory)
 
-MyFactory *my_factory_new(void);
+MyFactory *my_factory_new(const char *filename);
 
 G_END_DECLS
 

@@ -1,12 +1,14 @@
 #include "my-factory.h"
 #include "gstrtpmytimestamp.h"
 #include <stdio.h>
+#include <string.h>
 
 struct _MyFactory
 {
   GstRTSPMediaFactory parent_instance;
 
   /* instance variables go here */
+  char filename[1024];
 };
 
 static GstElement *my_factory_create_element(GstRTSPMediaFactory *factory, const GstRTSPUrl *url);
@@ -33,10 +35,13 @@ my_factory_class_init(MyFactoryClass *class)
 }
 
 MyFactory *
-my_factory_new(void)
+my_factory_new(const char *filename)
 {
   printf("my_factory_new\n");
-  return g_object_new (MY_TYPE_FACTORY, NULL);
+
+  MyFactory *obj = g_object_new(MY_TYPE_FACTORY, NULL);
+  strncpy(obj->filename, filename, sizeof(obj->filename));
+  return obj;
 }
 
 static void
@@ -81,7 +86,7 @@ my_factory_create_element(GstRTSPMediaFactory *factory, const GstRTSPUrl *url)
   payer = gst_element_factory_make("rtph265pay", "payer");
   stamper = gst_element_factory_make("rtpmytimestamp", "pay0");
 
-  g_object_set(G_OBJECT(source), "location", "/home/mostafa/Downloads/sample_data/1_cam01.mkv", NULL);
+  g_object_set(G_OBJECT(source), "location", MY_FACTORY(factory)->filename, NULL);
   g_object_set(G_OBJECT(payer), "pt", 96, NULL);
   g_object_set(G_OBJECT(stamper), "ntp-offset", 0, NULL);
 
