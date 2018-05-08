@@ -67,18 +67,8 @@ my_factory_create_element(GstRTSPMediaFactory *factory, const GstRTSPUrl *url)
 {
   printf("my_factory_create_element\n");
   GstElement *pipeline, *source, *demux, *parser, *payer, *stamper;
-  GstClock *clock;
-
-  clock = gst_ntp_clock_new("ntpclock", "1.ir.pool.ntp.org", 123, 0);
-  if (!clock) {
-    printf("Could not create ntp clock\n");
-    return NULL;
-  }
 
   pipeline = gst_pipeline_new("player");
-  gst_pipeline_set_clock(GST_PIPELINE(pipeline), clock);
-  gst_pipeline_use_clock(GST_PIPELINE(pipeline), clock);
-  printf("xxxx clock: %lu\n", gst_clock_get_time(clock));
 
   source = gst_element_factory_make("filesrc", "source");
   demux = gst_element_factory_make("matroskademux", "demux");
