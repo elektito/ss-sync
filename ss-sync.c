@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "my-factory.h"
-#include "gstrtpxyztimestamp.h"
+#include "gstrtpmytimestamp.h"
 
 GstRTSPMediaFactory *
 get_media_factory(void)
@@ -39,7 +39,7 @@ main(int argc, char *argv[])
   GstRTSPMountPoints *mounts;
 
   gst_init(&argc, &argv);
-  gst_element_register(NULL, "rtpxyztimestamp", 0, GST_TYPE_RTP_XYZ_TIMESTAMP);
+  gst_element_register(NULL, "rtpmytimestamp", 0, GST_TYPE_RTP_MY_TIMESTAMP);
 
   server = gst_rtsp_server_new();
   factory = get_media_factory2();

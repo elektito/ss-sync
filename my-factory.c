@@ -1,5 +1,5 @@
 #include "my-factory.h"
-#include "gstrtpxyztimestamp.h"
+#include "gstrtpmytimestamp.h"
 #include <stdio.h>
 
 struct _MyFactory
@@ -79,7 +79,7 @@ my_factory_create_element(GstRTSPMediaFactory *factory, const GstRTSPUrl *url)
   demux = gst_element_factory_make("matroskademux", "demux");
   parser = gst_element_factory_make("h265parse", "parser");
   payer = gst_element_factory_make("rtph265pay", "payer");
-  stamper = gst_element_factory_make("rtpxyztimestamp", "pay0");
+  stamper = gst_element_factory_make("rtpmytimestamp", "pay0");
   //gst_element_set_clock(GST_ELEMENT(stamper), clock);
   //gst_element_use_clock(GST_ELEMENT(stamper), clock);
 

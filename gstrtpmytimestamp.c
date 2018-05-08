@@ -1,23 +1,3 @@
-/*
- * gstrtponviftimestamp.h
- *
- * Copyright (C) 2014 Axis Communications AB
- *  Author: Guillaume Desmottes <guillaume.desmottes@collabora.com>
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -33,7 +13,7 @@
 
 #include <gst/rtp/gstrtpbuffer.h>
 
-#include "gstrtpxyztimestamp.h"
+#include "gstrtpmytimestamp.h"
 
 #define GST_NTP_OFFSET_EVENT_NAME "GstNtpOffset"
 
@@ -41,17 +21,17 @@
 #define DEFAULT_CSEQ 0
 #define DEFAULT_SET_E_BIT FALSE
 
-GST_DEBUG_CATEGORY_STATIC (rtpxyztimestamp_debug);
-#define GST_CAT_DEFAULT (rtpxyztimestamp_debug)
+GST_DEBUG_CATEGORY_STATIC (rtpmytimestamp_debug);
+#define GST_CAT_DEFAULT (rtpmytimestamp_debug)
 
-static GstFlowReturn gst_rtp_xyz_timestamp_chain (GstPad * pad,
+static GstFlowReturn gst_rtp_my_timestamp_chain (GstPad * pad,
     GstObject * parent, GstBuffer * buf);
-static GstFlowReturn gst_rtp_xyz_timestamp_chain_list (GstPad * pad,
+static GstFlowReturn gst_rtp_my_timestamp_chain_list (GstPad * pad,
     GstObject * parent, GstBufferList * list);
 
-static GstFlowReturn handle_and_push_buffer (GstRtpXyzTimestamp * self,
+static GstFlowReturn handle_and_push_buffer (GstRtpMyTimestamp * self,
     GstBuffer * buf);
-static GstFlowReturn handle_and_push_buffer_list (GstRtpXyzTimestamp * self,
+static GstFlowReturn handle_and_push_buffer_list (GstRtpMyTimestamp * self,
     GstBufferList * list);
 
 static GstStaticPadTemplate sink_template_factory =
@@ -76,15 +56,15 @@ enum
   PROP_SET_E_BIT,
 };
 
-/*static guint gst_rtp_xyz_timestamp_signals[LAST_SIGNAL] = { 0 }; */
+/*static guint gst_rtp_my_timestamp_signals[LAST_SIGNAL] = { 0 }; */
 
-G_DEFINE_TYPE (GstRtpXyzTimestamp, gst_rtp_xyz_timestamp, GST_TYPE_ELEMENT);
+G_DEFINE_TYPE (GstRtpMyTimestamp, gst_rtp_my_timestamp, GST_TYPE_ELEMENT);
 
 static void
-gst_rtp_xyz_timestamp_get_property (GObject * object,
+gst_rtp_my_timestamp_get_property (GObject * object,
     guint prop_id, GValue * value, GParamSpec * pspec)
 {
-  GstRtpXyzTimestamp *self = GST_RTP_XYZ_TIMESTAMP (object);
+  GstRtpMyTimestamp *self = GST_RTP_MY_TIMESTAMP (object);
 
   switch (prop_id) {
     case PROP_NTP_OFFSET:
@@ -103,10 +83,10 @@ gst_rtp_xyz_timestamp_get_property (GObject * object,
 }
 
 static void
-gst_rtp_xyz_timestamp_set_property (GObject * object,
+gst_rtp_my_timestamp_set_property (GObject * object,
     guint prop_id, const GValue * value, GParamSpec * pspec)
 {
-  GstRtpXyzTimestamp *self = GST_RTP_XYZ_TIMESTAMP (object);
+  GstRtpMyTimestamp *self = GST_RTP_MY_TIMESTAMP (object);
 
   switch (prop_id) {
     case PROP_NTP_OFFSET:
@@ -126,7 +106,7 @@ gst_rtp_xyz_timestamp_set_property (GObject * object,
 
 /* send cached buffer or list, and events, if present */
 static GstFlowReturn
-send_cached_buffer_and_events (GstRtpXyzTimestamp * self)
+send_cached_buffer_and_events (GstRtpMyTimestamp * self)
 {
   GstFlowReturn ret = GST_FLOW_OK;
 
@@ -159,7 +139,7 @@ out:
 }
 
 static void
-purge_cached_buffer_and_events (GstRtpXyzTimestamp * self)
+purge_cached_buffer_and_events (GstRtpMyTimestamp * self)
 {
   g_assert (!(self->buffer && self->list));
 
@@ -183,10 +163,10 @@ purge_cached_buffer_and_events (GstRtpXyzTimestamp * self)
 }
 
 static GstStateChangeReturn
-gst_rtp_xyz_timestamp_change_state (GstElement * element,
+gst_rtp_my_timestamp_change_state (GstElement * element,
     GstStateChange transition)
 {
-  GstRtpXyzTimestamp *self = GST_RTP_XYZ_TIMESTAMP (element);
+  GstRtpMyTimestamp *self = GST_RTP_MY_TIMESTAMP (element);
   GstStateChangeReturn ret;
 
   switch (transition) {
@@ -201,7 +181,7 @@ gst_rtp_xyz_timestamp_change_state (GstElement * element,
       break;
   }
 
-  ret = GST_ELEMENT_CLASS (gst_rtp_xyz_timestamp_parent_class)->change_state
+  ret = GST_ELEMENT_CLASS (gst_rtp_my_timestamp_parent_class)->change_state
       (element, transition);
 
   if (ret == GST_STATE_CHANGE_FAILURE)
@@ -220,17 +200,17 @@ gst_rtp_xyz_timestamp_change_state (GstElement * element,
 }
 
 static void
-gst_rtp_xyz_timestamp_finalize (GObject * object)
+gst_rtp_my_timestamp_finalize (GObject * object)
 {
-  GstRtpXyzTimestamp *self = GST_RTP_XYZ_TIMESTAMP (object);
+  GstRtpMyTimestamp *self = GST_RTP_MY_TIMESTAMP (object);
 
   g_queue_free (self->event_queue);
 
-  G_OBJECT_CLASS (gst_rtp_xyz_timestamp_parent_class)->finalize (object);
+  G_OBJECT_CLASS (gst_rtp_my_timestamp_parent_class)->finalize (object);
 }
 
 static void
-gst_rtp_xyz_timestamp_class_init (GstRtpXyzTimestampClass * klass)
+gst_rtp_my_timestamp_class_init (GstRtpMyTimestampClass * klass)
 {
   GObjectClass *gobject_class;
   GstElementClass *gstelement_class;
@@ -238,9 +218,9 @@ gst_rtp_xyz_timestamp_class_init (GstRtpXyzTimestampClass * klass)
   gobject_class = G_OBJECT_CLASS (klass);
   gstelement_class = GST_ELEMENT_CLASS (klass);
 
-  gobject_class->get_property = gst_rtp_xyz_timestamp_get_property;
-  gobject_class->set_property = gst_rtp_xyz_timestamp_set_property;
-  gobject_class->finalize = gst_rtp_xyz_timestamp_finalize;
+  gobject_class->get_property = gst_rtp_my_timestamp_get_property;
+  gobject_class->set_property = gst_rtp_my_timestamp_set_property;
+  gobject_class->finalize = gst_rtp_my_timestamp_finalize;
 
   g_object_class_install_property (gobject_class, PROP_NTP_OFFSET,
       g_param_spec_uint64 ("ntp-offset", "NTP offset",
@@ -257,7 +237,7 @@ gst_rtp_xyz_timestamp_class_init (GstRtpXyzTimestampClass * klass)
 
   g_object_class_install_property (gobject_class, PROP_SET_E_BIT,
       g_param_spec_boolean ("set-e-bit", "Set 'E' bit",
-          "If the element should set the 'E' bit as defined in the XYZ RTP "
+          "If the element should set the 'E' bit as defined in the MY RTP "
           "extension. This increases latency by one packet",
           DEFAULT_SET_E_BIT, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
@@ -268,19 +248,19 @@ gst_rtp_xyz_timestamp_class_init (GstRtpXyzTimestampClass * klass)
       &src_template_factory);
 
   gst_element_class_set_static_metadata (gstelement_class,
-      "XYZ NTP timestamps RTP extension", "Effect/RTP",
+      "MY NTP timestamps RTP extension", "Effect/RTP",
       "Add absolute timestamps and flags of recorded data in a playback "
       "session", "Guillaume Desmottes <guillaume.desmottes@collabora.com>");
 
   gstelement_class->change_state =
-      GST_DEBUG_FUNCPTR (gst_rtp_xyz_timestamp_change_state);
+      GST_DEBUG_FUNCPTR (gst_rtp_my_timestamp_change_state);
 
-  GST_DEBUG_CATEGORY_INIT (rtpxyztimestamp_debug, "rtpxyztimestamp",
-      0, "XYZ NTP timestamps RTP extension");
+  GST_DEBUG_CATEGORY_INIT (rtpmytimestamp_debug, "rtpmytimestamp",
+      0, "MY NTP timestamps RTP extension");
 }
 
 static gboolean
-parse_event_ntp_offset (GstRtpXyzTimestamp * self, GstEvent * event,
+parse_event_ntp_offset (GstRtpMyTimestamp * self, GstEvent * event,
     GstClockTime * offset, gboolean * discont)
 {
   const GstStructure *structure = gst_event_get_structure (event);
@@ -306,10 +286,10 @@ parse_event_ntp_offset (GstRtpXyzTimestamp * self, GstEvent * event,
 }
 
 static gboolean
-gst_rtp_xyz_timestamp_sink_event (GstPad * pad, GstObject * parent,
+gst_rtp_my_timestamp_sink_event (GstPad * pad, GstObject * parent,
     GstEvent * event)
 {
-  GstRtpXyzTimestamp *self = GST_RTP_XYZ_TIMESTAMP (parent);
+  GstRtpMyTimestamp *self = GST_RTP_MY_TIMESTAMP (parent);
   gboolean drop = FALSE;
   gboolean ret = TRUE;
 
@@ -404,15 +384,15 @@ out:
 }
 
 static void
-gst_rtp_xyz_timestamp_init (GstRtpXyzTimestamp * self)
+gst_rtp_my_timestamp_init (GstRtpMyTimestamp * self)
 {
   self->sinkpad =
       gst_pad_new_from_static_template (&sink_template_factory, "sink");
-  gst_pad_set_chain_function (self->sinkpad, gst_rtp_xyz_timestamp_chain);
+  gst_pad_set_chain_function (self->sinkpad, gst_rtp_my_timestamp_chain);
   gst_pad_set_chain_list_function (self->sinkpad,
-      gst_rtp_xyz_timestamp_chain_list);
+      gst_rtp_my_timestamp_chain_list);
   gst_pad_set_event_function (self->sinkpad,
-      gst_rtp_xyz_timestamp_sink_event);
+      gst_rtp_my_timestamp_sink_event);
   gst_element_add_pad (GST_ELEMENT (self), self->sinkpad);
   GST_PAD_SET_PROXY_CAPS (self->sinkpad);
   GST_PAD_SET_PROXY_ALLOCATION (self->sinkpad);
@@ -435,7 +415,7 @@ gst_rtp_xyz_timestamp_init (GstRtpXyzTimestamp * self)
 #define EXTENSION_SIZE 3
 
 static gboolean
-handle_buffer (GstRtpXyzTimestamp * self, GstBuffer * buf)
+handle_buffer (GstRtpMyTimestamp * self, GstBuffer * buf)
 {
   GstRTPBuffer rtp = GST_RTP_BUFFER_INIT;
   guint8 *data;
@@ -574,7 +554,7 @@ done:
 
 /* @buf: (transfer full) */
 static GstFlowReturn
-handle_and_push_buffer (GstRtpXyzTimestamp * self, GstBuffer * buf)
+handle_and_push_buffer (GstRtpMyTimestamp * self, GstBuffer * buf)
 {
   if (!handle_buffer (self, buf)) {
     gst_buffer_unref (buf);
@@ -585,10 +565,10 @@ handle_and_push_buffer (GstRtpXyzTimestamp * self, GstBuffer * buf)
 }
 
 static GstFlowReturn
-gst_rtp_xyz_timestamp_chain (GstPad * pad, GstObject * parent,
+gst_rtp_my_timestamp_chain (GstPad * pad, GstObject * parent,
     GstBuffer * buf)
 {
-  GstRtpXyzTimestamp *self = GST_RTP_XYZ_TIMESTAMP (parent);
+  GstRtpMyTimestamp *self = GST_RTP_MY_TIMESTAMP (parent);
   GstFlowReturn result = GST_FLOW_OK;
 
   if (!self->prop_set_e_bit) {
@@ -606,7 +586,7 @@ gst_rtp_xyz_timestamp_chain (GstPad * pad, GstObject * parent,
 
 /* @buf: (transfer full) */
 static GstFlowReturn
-handle_and_push_buffer_list (GstRtpXyzTimestamp * self, GstBufferList * list)
+handle_and_push_buffer_list (GstRtpMyTimestamp * self, GstBufferList * list)
 {
   GstBuffer *buf;
 
@@ -624,10 +604,10 @@ handle_and_push_buffer_list (GstRtpXyzTimestamp * self, GstBufferList * list)
  * function, making it not writable. We implement our own chain_list function
  * to avoid having to copy each buffer. */
 static GstFlowReturn
-gst_rtp_xyz_timestamp_chain_list (GstPad * pad, GstObject * parent,
+gst_rtp_my_timestamp_chain_list (GstPad * pad, GstObject * parent,
     GstBufferList * list)
 {
-  GstRtpXyzTimestamp *self = GST_RTP_XYZ_TIMESTAMP (parent);
+  GstRtpMyTimestamp *self = GST_RTP_MY_TIMESTAMP (parent);
   GstFlowReturn result = GST_FLOW_OK;
 
   if (!self->prop_set_e_bit) {
