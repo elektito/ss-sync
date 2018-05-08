@@ -507,15 +507,15 @@ handle_buffer (GstRtpMyTimestamp * self, GstBuffer * buf)
    * and the lower 32 bits, the fractions of a second. */
   time = gst_util_uint64_scale (time, (G_GINT64_CONSTANT (1) << 32),
       GST_SECOND);
-  //time = 2100;
+
   struct timespec tp;
   clock_gettime(CLOCK_REALTIME, &tp);
-  time = tp.tv_sec;
-  printf("xx time: %lu\n", time);
 
   GST_DEBUG_OBJECT (self, "timestamp: %" G_GUINT64_FORMAT, time);
 
-  GST_WRITE_UINT64_BE (data, time);
+  //GST_WRITE_UINT64_BE (data, time);
+  GST_WRITE_UINT32_BE (data + 4, tp.tv_nsec);
+  GST_WRITE_UINT32_BE (data, tp.tv_sec);
 
   /* The next byte is composed of: C E D mbz (5 bits) */
 
