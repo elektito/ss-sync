@@ -11,3 +11,6 @@ HEADERS := my-factory.h \
 
 ss-sync: $(SOURCES) $(HEADERS) Makefile
 	cc $(SOURCES) $(FLAGS) -o ss-sync
+
+clean:
+	rm ss-sync
