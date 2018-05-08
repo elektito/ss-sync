@@ -80,37 +80,26 @@ my_factory_create_element(GstRTSPMediaFactory *factory, const GstRTSPUrl *url)
   parser = gst_element_factory_make("h265parse", "parser");
   payer = gst_element_factory_make("rtph265pay", "payer");
   stamper = gst_element_factory_make("rtpmytimestamp", "pay0");
-  //gst_element_set_clock(GST_ELEMENT(stamper), clock);
-  //gst_element_use_clock(GST_ELEMENT(stamper), clock);
 
-  printf("400\n");
   g_object_set(G_OBJECT(source), "location", "/home/mostafa/Downloads/sample_data/1_cam01.mkv", NULL);
   g_object_set(G_OBJECT(payer), "pt", 96, NULL);
   g_object_set(G_OBJECT(stamper), "ntp-offset", 0, NULL);
 
-  printf("500\n");
   if (!pipeline || !source || !demux || !parser || !payer || !stamper) {
     g_printerr ("One element could not be created. Exiting.\n");
     return NULL;
   }
 
-  printf("1000\n");
   gst_bin_add_many(GST_BIN(pipeline),
                    source, demux, parser, payer, stamper, NULL);
 
-  printf("2000\n");
   gst_element_link (source, demux);
-  printf("3000\n");
   g_signal_connect (demux, "pad-added", G_CALLBACK (on_pad_added), parser);
 
-  printf("4000\n");
   if (!gst_element_link_many(parser, payer, stamper, NULL)) {
     printf("link_many failed\n");
     return NULL;
   }
-
-  printf("5000\n");
-  //gst_element_set_state (pipeline, GST_STATE_PLAYING);
 
   return pipeline;
 }

@@ -12,8 +12,6 @@ get_media_factory(void)
 
   factory = gst_rtsp_media_factory_new();
 
-  //gst_rtsp_media_factory_set_launch(factory,
-  //            "( videotestsrc ! x264enc ! rtph264pay pt=96 name=pay0 )");
   gst_rtsp_media_factory_set_launch(factory,
               "( filesrc location=/home/mostafa/Downloads/sample_data/1_cam01.mkv ! matroskademux ! h265parse ! rtph265pay pt=96 name=pay0 )");
 
