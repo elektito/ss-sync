@@ -1,6 +1,12 @@
 # How to Build
 
-Simply run make:
+You will need `gstreamer-1.0` and the `gst-rtsp-server` development
+files in order to build this program. In Ubuntu 16.04, you can install
+these by running:
+
+    $ sudo apt install libgstreamer1.0-dev libgstrtspserver-1.0-dev
+
+In order to build, simply run `make`:
 
     $ make
 
