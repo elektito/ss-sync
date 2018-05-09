@@ -19,7 +19,7 @@ Pass an `mkv` file containing an H.265 video as the only argument to
 
 # How to Watch the Video
 
-You can use any video supporting RTSP. For example, to use the
+You can use any video player supporting RTSP. For example, to use the
 command-line version of `VLC` run:
 
     $ cvlc rtsp://localhost:8554/test
